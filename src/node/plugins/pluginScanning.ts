@@ -22,6 +22,7 @@ export function pluginScanning(options: PluginOptions): Plugin {
     },
     load(id) {
       if (id === "\0" + CONVENTIONAL_ROUTE_ID) {
+        debugger;
         return `export default ${JSON.stringify(depArr)}`;
       }
     },

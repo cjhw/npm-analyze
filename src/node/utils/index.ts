@@ -4,7 +4,13 @@ import path from "path";
 import { pathToFileURL } from "url";
 // import { globSync } from "glob";
 
-export async function recurFindDep(root: string, depArr: any[]) {
+const map = new Map();
+
+export async function recurFindDep(
+  root: string,
+  depArr: any[],
+  set?: Set<string>
+) {
   const pkgPath = path.join(root, "package.json");
 
   const pkgJsonContent = await readPackAgeJson(pkgPath);
@@ -14,25 +20,43 @@ export async function recurFindDep(root: string, depArr: any[]) {
     children: [],
   };
 
+  map.set(pkgObj.name, pkgObj);
+
   depArr.push(pkgObj);
 
   try {
     const depPkgs: string[] = {
-      // ...pkgJsonContent.devDependencies,
+      ...pkgJsonContent.devDependencies,
       ...pkgJsonContent.dependencies,
     };
     Object.keys(depPkgs).forEach(async (dep) => {
       if (dep !== pkgJsonContent.name) {
-        // console.log("name", pkgJsonContent.name);
-        // console.log("dep", dep);
-        const pkgEntryPath = findEntry(dep, root);
-        if (pkgEntryPath) {
-          const packageFilePath = findPackageJsonFileByEntry(pkgEntryPath);
-          const pkgPath = path.dirname(packageFilePath);
-          const pkgJsonContent = await readPackAgeJson(packageFilePath);
-          await recurFindDep(pkgPath, pkgObj.children);
+        if (map.get(dep) && !set.has(dep)) {
+          pkgObj.children.push(map.get(dep));
         } else {
-          return;
+          console.log("name", pkgJsonContent.name);
+          console.log("dep", dep);
+          const pkgEntryPath = findEntry(dep, root);
+          if (pkgEntryPath) {
+            const packageFilePath = findPackageJsonFileByEntry(pkgEntryPath);
+            const pkgPath = path.dirname(packageFilePath);
+            const pkgJsonContent = await readPackAgeJson(packageFilePath);
+            if (set && set.has(dep)) {
+            } else {
+              let helpSet: Set<string>;
+              if (set) {
+                helpSet = new Set([...set]);
+                helpSet.add(dep);
+              } else {
+                helpSet = new Set<string>();
+                helpSet.add(dep);
+              }
+              helpSet.add(pkgJsonContent.name);
+              await recurFindDep(pkgPath, pkgObj.children, helpSet);
+            }
+          } else {
+            return;
+          }
         }
       }
     });
