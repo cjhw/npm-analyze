@@ -7,13 +7,25 @@ interface PluginOptions {
 
 export const CONVENTIONAL_ROUTE_ID = "analyze:dep";
 
-export function pluginScanning(options: PluginOptions): Plugin {
+export async function pluginScanning(options: PluginOptions): Promise<Plugin> {
   const depArr = [];
+  const { spinner: load } = await import("@astrojs/cli-kit");
 
   return {
     name: "analyze:dep",
     async configResolved() {
-      recurFindDep(options.root, depArr);
+      await load({
+        start: "Checking npm dependencies",
+        end: "Check end",
+        while: () => {
+          recurFindDep(options.root, depArr);
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              resolve(1);
+            }, 3000);
+          });
+        },
+      });
     },
     resolveId(id) {
       if (id === CONVENTIONAL_ROUTE_ID) {
