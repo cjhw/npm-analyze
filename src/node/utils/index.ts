@@ -20,7 +20,7 @@ export async function recurFindDep(
     children: [],
   };
 
-  map.set(pkgObj.name, pkgObj);
+  map.set(pkgObj.name, JSON.stringify(pkgObj));
 
   depArr.push(pkgObj);
 
@@ -32,30 +32,34 @@ export async function recurFindDep(
     Object.keys(depPkgs).forEach(async (dep) => {
       if (dep !== pkgJsonContent.name) {
         if (map.get(dep) && !set.has(dep)) {
-          pkgObj.children.push(map.get(dep));
+          pkgObj.children.push(JSON.parse(map.get(dep)));
         } else {
-          console.log("name", pkgJsonContent.name);
-          console.log("dep", dep);
+          //   console.log("name", pkgJsonContent.name);
+          //   console.log("dep", dep);
           const pkgEntryPath = findEntry(dep, root);
           if (pkgEntryPath) {
-            const packageFilePath = findPackageJsonFileByEntry(pkgEntryPath);
-            const pkgPath = path.dirname(packageFilePath);
-            const pkgJsonContent = await readPackAgeJson(packageFilePath);
-            if (set && set.has(dep)) {
-            } else {
-              let helpSet: Set<string>;
-              if (set) {
-                helpSet = new Set([...set]);
-                helpSet.add(dep);
+            const packageFilePath = await findPackageJsonFileByEntry(
+              pkgEntryPath
+            );
+            if (pkgEntryPath) {
+              const pkgPath = path.dirname(packageFilePath);
+              const pkgJsonContent = await readPackAgeJson(packageFilePath);
+              if (set && set.has(dep)) {
               } else {
-                helpSet = new Set<string>();
-                helpSet.add(dep);
+                let helpSet: Set<string>;
+                if (set) {
+                  helpSet = new Set([...set]);
+                  helpSet.add(dep);
+                } else {
+                  helpSet = new Set<string>();
+                  helpSet.add(dep);
+                }
+                helpSet.add(pkgJsonContent.name);
+                await recurFindDep(pkgPath, pkgObj.children, helpSet);
               }
-              helpSet.add(pkgJsonContent.name);
-              await recurFindDep(pkgPath, pkgObj.children, helpSet);
             }
           } else {
-            return;
+            pkgObj.children.push({ name: dep, children: [] });
           }
         }
       }
@@ -76,19 +80,24 @@ function findEntry(pkgName: string, root: string) {
   } catch (e) {}
 }
 
-function findPackageJsonFileByEntry(entry: string) {
+async function findPackageJsonFileByEntry(entry: string) {
   let dir = path.dirname(entry);
   let packageJsonFilePath = path.join(dir, "package.json");
 
   try {
     const stat = fs.statSync(packageJsonFilePath);
     if (stat.isFile()) {
-      return packageJsonFilePath;
+      const pkgContent = await readPackAgeJson(packageJsonFilePath);
+      if (pkgContent.name) {
+        return packageJsonFilePath;
+      } else {
+        return await findPackageJsonFileByEntry(path.dirname(entry));
+      }
     } else {
-      return findPackageJsonFileByEntry(path.dirname(entry));
+      return await findPackageJsonFileByEntry(path.dirname(entry));
     }
   } catch (error) {
-    return findPackageJsonFileByEntry(path.dirname(entry));
+    return await findPackageJsonFileByEntry(path.dirname(entry));
   }
 }
 
