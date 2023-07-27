@@ -1,36 +1,82 @@
 <script setup lang="ts">
-import HelloWorld from "./components/HelloWorld.vue";
-import deps from 'analyze:dep'
+import * as echarts from 'echarts';
+import { ref, onMounted, watch } from 'vue'
+import deps from 'analyze:dep';
 
-console.log(deps);
+type EChartsOption = echarts.EChartsOption;
+
+const data = ref(deps)
+
+console.log(data.value);
+
+
+let option: EChartsOption = {
+    tooltip: {
+        trigger: 'item',
+        triggerOn: 'mousemove'
+    },
+    series: [
+        {
+            type: 'tree',
+
+            data: [data.value[0]],
+
+            top: '1%',
+            left: '7%',
+            bottom: '1%',
+            right: '20%',
+
+            symbolSize: 7,
+
+            label: {
+                position: 'left',
+                verticalAlign: 'middle',
+                align: 'right',
+                fontSize: 9
+            },
+
+            leaves: {
+                label: {
+                    position: 'right',
+                    verticalAlign: 'middle',
+                    align: 'left'
+                }
+            },
+
+            emphasis: {
+                focus: 'descendant'
+            },
+
+            expandAndCollapse: true,
+            animationDuration: 550,
+            animationDurationUpdate: 750
+        }
+    ]
+}
+
+onMounted(() => {
+    let chartDom = document.getElementById('canvas')!;
+
+    chartDom.style.height = data.value[0]?.children?.length * 450 + 'px'
+    chartDom.style.width = data.value[0]?.children?.length * 100 + 'px'
+
+    let myChart = echarts.init(chartDom);
+
+    myChart.setOption(option)
+})
+
 
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="./public/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+    <div id="canvas">
+
+    </div>
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+#canvas {
+    width: 1500px;
+    height: 3000px;
 }
 </style>

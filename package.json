@@ -23,6 +23,7 @@
     "@astrojs/cli-kit": "^0.2.3",
     "@vitejs/plugin-vue": "^4.2.3",
     "cac": "^6.7.14",
+    "echarts": "^5.4.3",
     "fs-extra": "^11.1.1",
     "glob": "^10.3.3",
     "vite": "^4.4.7",

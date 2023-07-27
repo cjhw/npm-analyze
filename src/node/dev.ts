@@ -10,12 +10,13 @@ export async function createDevServer(
 ) {
   return createViteDevServer({
     root: package_root,
-    plugins: [pluginIndexHtml(), pluginScanning({ root }), vue()],
+    plugins: [pluginIndexHtml(), await pluginScanning({ root }), vue()],
     // 允许访问不在根目录下的文件夹
     server: {
       fs: {
         allow: [PACKAGE_ROOT],
       },
+      open: true,
     },
   });
 }
