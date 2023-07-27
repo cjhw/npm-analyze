@@ -2,7 +2,6 @@ import { cac } from "cac";
 import { createDevServer } from "./dev";
 import path from "path";
 import { PACKAGE_ROOT } from "./constants";
-import { pathToFileURL } from "url";
 import { recurFindDep } from "./utils";
 
 const version = require("../../package.json").version;
@@ -16,9 +15,7 @@ cli
     // 添加以下逻辑
     root = root ? path.resolve(root) : process.cwd();
 
-    recurFindDep(root);
-
-    const server = await createDevServer(PACKAGE_ROOT);
+    const server = await createDevServer(PACKAGE_ROOT, root);
     await server.listen();
     server.printUrls();
   });

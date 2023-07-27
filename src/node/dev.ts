@@ -2,11 +2,15 @@ import { createServer as createViteDevServer } from "vite";
 import { pluginIndexHtml } from "./plugins/indexHtml";
 import vue from "@vitejs/plugin-vue";
 import { PACKAGE_ROOT } from "./constants";
+import { pluginScanning } from "./plugins/pluginScanning";
 
-export async function createDevServer(root = process.cwd()) {
+export async function createDevServer(
+  package_root: string,
+  root = process.cwd()
+) {
   return createViteDevServer({
-    root,
-    plugins: [pluginIndexHtml(), vue()],
+    root: package_root,
+    plugins: [pluginIndexHtml(), pluginScanning({ root }), vue()],
     // 允许访问不在根目录下的文件夹
     server: {
       fs: {

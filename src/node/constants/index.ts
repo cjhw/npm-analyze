@@ -10,3 +10,11 @@ export const CLIENT_ENTRY_PATH = join(
   "runtime",
   "client-entry.ts"
 );
+
+export const DEFAULT_SOURCE_IGNORES = [
+  // "**/.*",
+  // "**/.*/**",
+  // "**/node_modules/**",
+  // "**/dist/**",
+  // "**/build/**",
+];
