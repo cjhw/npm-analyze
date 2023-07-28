@@ -34,7 +34,6 @@ export async function pluginScanning(options: PluginOptions): Promise<Plugin> {
     },
     load(id) {
       if (id === "\0" + CONVENTIONAL_ROUTE_ID) {
-        debugger;
         return `export default ${JSON.stringify(depArr)}`;
       }
     },
