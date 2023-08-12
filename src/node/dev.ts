@@ -6,11 +6,12 @@ import { pluginScanning } from "./plugins/pluginScanning";
 
 export async function createDevServer(
   package_root: string,
-  root = process.cwd()
+  root = process.cwd(),
+  depth: number
 ) {
   return createViteDevServer({
     root: package_root,
-    plugins: [pluginIndexHtml(), await pluginScanning({ root }), vue()],
+    plugins: [pluginIndexHtml(), await pluginScanning({ root, depth }), vue()],
     // 允许访问不在根目录下的文件夹
     server: {
       fs: {

@@ -2,21 +2,23 @@ import fs from "fs-extra";
 import { createRequire } from "module";
 import path from "path";
 import { pathToFileURL } from "url";
-// import { globSync } from "glob";
 
 const map = new Map();
 
 export async function recurFindDep(
   root: string,
   depArr: any[],
-  set?: Set<string>
+  set?: Set<string>,
+  depth?: number
 ) {
   const pkgPath = path.join(root, "package.json");
 
   const pkgJsonContent = await readPackAgeJson(pkgPath);
 
   let pkgObj = {
-    name: pkgJsonContent.name,
+    name: pkgJsonContent?.version
+      ? `${pkgJsonContent.name}@${pkgJsonContent?.version}`
+      : pkgJsonContent.name,
     children: [],
   };
 
@@ -24,8 +26,15 @@ export async function recurFindDep(
 
   depArr.push(pkgObj);
 
+  if (depth) {
+    depth--;
+    if (depth === 0) {
+      return;
+    }
+  }
+
   try {
-    const depPkgs: string[] = {
+    const depPkgs: Record<string, string> = {
       ...pkgJsonContent.devDependencies,
       ...pkgJsonContent.dependencies,
     };
@@ -55,7 +64,7 @@ export async function recurFindDep(
                   helpSet.add(dep);
                 }
                 helpSet.add(pkgJsonContent.name);
-                await recurFindDep(pkgPath, pkgObj.children, helpSet);
+                await recurFindDep(pkgPath, pkgObj.children, helpSet, depth);
               }
             }
           } else {

@@ -3,6 +3,7 @@ import { recurFindDep } from "../utils";
 
 interface PluginOptions {
   root: string;
+  depth: number;
 }
 
 export const CONVENTIONAL_ROUTE_ID = "analyze:dep";
@@ -18,7 +19,7 @@ export async function pluginScanning(options: PluginOptions): Promise<Plugin> {
         start: "Checking npm dependencies",
         end: "Check end",
         while: () => {
-          recurFindDep(options.root, depArr);
+          recurFindDep(options.root, depArr, undefined, options.depth);
           return new Promise((resolve, reject) => {
             setTimeout(() => {
               resolve(1);
