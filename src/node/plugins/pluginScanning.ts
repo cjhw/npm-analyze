@@ -1,5 +1,5 @@
 import { Plugin } from "vite";
-import { recurFindDep } from "../utils";
+import { recurFindDep, computedDepsNum } from "../utils";
 
 interface PluginOptions {
   root: string;
@@ -27,6 +27,8 @@ export async function pluginScanning(options: PluginOptions): Promise<Plugin> {
           });
         },
       });
+
+      computedDepsNum(depArr);
     },
     resolveId(id) {
       if (id === CONVENTIONAL_ROUTE_ID) {

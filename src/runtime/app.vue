@@ -10,11 +10,22 @@ const data = ref(deps);
 console.log(data.value);
 
 let option: EChartsOption = {
+  title: {
+    text: "npm analyze~~~",
+  },
   tooltip: {
     trigger: "item",
     triggerOn: "mousemove",
     formatter: function (params) {
-      return "<div>" + params.name + "<br>" + "</div>";
+      return (
+        "<div>" +
+        (params.data.detailName ? params.data.detailName : params.data.name) +
+        "<br>" +
+        '<span style="color: #00B83F;">' +
+        (params.data.success ? params.data.success : params.data.warn) +
+        "</span>" +
+        "</div>"
+      );
     },
   },
   series: [

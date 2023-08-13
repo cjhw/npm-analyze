@@ -18,6 +18,9 @@ export async function recurFindDep(
 
   let pkgObj = {
     name: pkgJsonContent.name,
+    detailName: pkgJsonContent?.version
+      ? `${pkgJsonContent.name}@${pkgJsonContent?.version}`
+      : pkgJsonContent.name,
     children: [],
   };
 
@@ -118,4 +121,17 @@ async function readPackAgeJson(pkgJsonFilePath: string) {
   );
 
   return pkg;
+}
+
+export function computedDepsNum(depArr: any[]) {
+  for (let i = 0; i < depArr.length; i++) {
+    if (depArr[i]?.children.length) {
+      depArr[i].value = depArr[i].children.length;
+      depArr[i].success = `该npm包共有${depArr[i].value}个依赖~~~`;
+      computedDepsNum(depArr[i].children);
+    } else {
+      depArr[i].warn =
+        "由于种种原因，该npm包没有找到包，该分析程序是基于package.json来分析的，有一些缺陷，可能是真的没有依赖或者出现了bug，谁知道呢~~~";
+    }
+  }
 }
