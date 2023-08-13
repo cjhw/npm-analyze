@@ -19,7 +19,7 @@ export async function pluginScanning(options: PluginOptions): Promise<Plugin> {
         start: "Checking npm dependencies",
         end: "Check end",
         while: () => {
-          recurFindDep(options.root, depArr, undefined, options.depth);
+          recurFindDep(options.root, depArr, new Set(), options.depth);
           return new Promise((resolve, reject) => {
             setTimeout(() => {
               resolve(1);

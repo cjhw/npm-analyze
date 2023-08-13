@@ -14,7 +14,7 @@ let option: EChartsOption = {
     trigger: "item",
     triggerOn: "mousemove",
     formatter: function (params) {
-      return "<div>" + params.name + "<br>";
+      return "<div>" + params.name + "<br>" + "</div>";
     },
   },
   series: [
