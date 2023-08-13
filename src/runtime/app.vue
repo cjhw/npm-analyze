@@ -22,7 +22,16 @@ let option: EChartsOption = {
         (params.data.detailName ? params.data.detailName : params.data.name) +
         "<br>" +
         '<span style="color: #00B83F;">' +
-        (params.data.success ? params.data.success : params.data.warn) +
+        (params.data.success
+          ? params.data.success
+          : params.data.warn.split("\n").join("<br>")) +
+        "</span>" +
+        "<br>" +
+        '<span style="color: #00B83F;">' +
+        "该包的大小为" +
+        '<span style="color: skyblue;">' +
+        (params.data.size ? params.data.size : "未知") +
+        "</span>" +
         "</span>" +
         "</div>"
       );

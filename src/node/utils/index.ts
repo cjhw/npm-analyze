@@ -10,7 +10,8 @@ export async function recurFindDep(
   root: string,
   depArr: any[],
   set?: Set<string>,
-  depth?: number
+  depth?: number,
+  depSize?: number
 ) {
   const pkgPath = path.join(root, "package.json");
 
@@ -22,6 +23,7 @@ export async function recurFindDep(
       ? `${pkgJsonContent.name}@${pkgJsonContent?.version}`
       : pkgJsonContent.name,
     children: [],
+    size: depSize ? depSize : undefined,
   };
 
   map.set(pkgObj.name, JSON.stringify(pkgObj));
@@ -41,6 +43,7 @@ export async function recurFindDep(
       ...pkgJsonContent.dependencies,
     };
     Object.keys(depPkgs).forEach(async (dep) => {
+      let depSize;
       if (dep !== pkgJsonContent.name) {
         if (map.get(dep)) {
           pkgObj.children.push(JSON.parse(map.get(dep)));
@@ -52,6 +55,9 @@ export async function recurFindDep(
             const packageFilePath = await findPackageJsonFileByEntry(
               pkgEntryPath
             );
+            if (packageFilePath) {
+              depSize = await dirSize(path.dirname(packageFilePath));
+            }
             if (pkgEntryPath) {
               const pkgPath = path.dirname(packageFilePath);
               const pkgJsonContent = await readPackAgeJson(packageFilePath);
@@ -66,7 +72,13 @@ export async function recurFindDep(
                   helpSet.add(dep);
                 }
                 helpSet.add(pkgJsonContent.name);
-                await recurFindDep(pkgPath, pkgObj.children, helpSet, depth);
+                await recurFindDep(
+                  pkgPath,
+                  pkgObj.children,
+                  helpSet,
+                  depth,
+                  depSize
+                );
               }
             }
           } else {
@@ -123,6 +135,35 @@ async function readPackAgeJson(pkgJsonFilePath: string) {
   return pkg;
 }
 
+export async function dirSize(dirPath) {
+  let totalSize = 0;
+
+  let children;
+  try {
+    children = await fs.readdir(dirPath);
+  } catch (e) {
+    return;
+  }
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+
+    const childPath = path.join(dirPath, child);
+    const res = await fs.lstat(childPath);
+
+    if (await res.isSymbolicLink()) {
+      break;
+    }
+
+    if (res.isDirectory()) {
+      totalSize += await dirSize(childPath);
+    } else {
+      totalSize += res.size;
+    }
+  }
+  return totalSize;
+}
+
 export function computedDepsNum(depArr: any[]) {
   for (let i = 0; i < depArr.length; i++) {
     if (depArr[i]?.children.length) {
@@ -131,7 +172,7 @@ export function computedDepsNum(depArr: any[]) {
       computedDepsNum(depArr[i].children);
     } else {
       depArr[i].warn =
-        "由于种种原因，该npm包没有找到包，该分析程序是基于package.json来分析的，有一些缺陷，可能是真的没有依赖或者出现了bug，谁知道呢~~~";
+        "由于种种原因，该npm包没有找到包，该分析程序是基于package.json来分析的，有一些缺陷，\n可能是真的没有依赖或者出现了bug，如果是最后一层的话也不会展示，谁知道呢~~~";
     }
   }
 }
